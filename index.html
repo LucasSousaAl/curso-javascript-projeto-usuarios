@@ -197,7 +197,7 @@
             <!-- ./col -->
           </div>
 
-          <div class="box box-success">
+          <div class="box box-success" id="user-box-create">
             <div class="box-header with-border">
               <h3 class="box-title">Novo Usuário</h3>
             </div>
@@ -213,12 +213,12 @@
                   <label>Gênero</label>
                   <div class="radio">
                     <label for="exampleInputGenderM">
-                      <input type="radio" id="exampleInputGenderM" name="gender" checked>
+                      <input type="radio" id="exampleInputGenderM" value="M" name="gender" checked>
                       Masculino</label>
                   </div>
                   <div class="radio">
                     <label for="exampleInputGenderF">
-                      <input type="radio" id="exampleInputGenderF" name="gender">
+                      <input type="radio" id="exampleInputGenderF" value="F" name="gender">
                       Feminino</label>
                   </div>
                 </div>
@@ -498,9 +498,9 @@
             </form>
           </div>
 
-          <div class="box box-primary" style="display: none;">
+          <div class="box box-primary" id="user-box-update" style="display: none;">
             <div class="box-header with-border">
-              <h3 class="box-title">Novo Usuário</h3>
+              <h3 class="box-title">Editar Usuário</h3>
             </div>
             <!-- /.box-header -->
             <!-- form start -->
@@ -514,12 +514,12 @@
                   <label>Gênero</label>
                   <div class="radio">
                     <label for="exampleInputGenderM">
-                      <input type="radio" id="exampleInputGenderM" name="gender" checked>
+                      <input type="radio" id="exampleInputGenderM" value="M" name="gender" checked>
                       Masculino</label>
                   </div>
                   <div class="radio">
                     <label for="exampleInputGenderF">
-                      <input type="radio" id="exampleInputGenderF" name="gender">
+                      <input type="radio" id="exampleInputGenderF" value="F" name="gender">
                       Feminino</label>
                   </div>
                 </div>
@@ -795,7 +795,7 @@
               <!-- /.box-body -->          
               <div class="box-footer">
                 <button type="submit" class="btn btn-primary">Salvar</button>
-                <button type="button" class="btn btn-default">Cancelar</button>
+                <button type="button" class="btn btn-cancel btn-default">Cancelar</button>
               </div>
             </form>
           </div>
