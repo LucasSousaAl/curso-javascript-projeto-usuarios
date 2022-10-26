@@ -1,13 +1,14 @@
 class UserController{
 
-    constructor(formId, tableId){
+    constructor(formIdCreate, formIdUpdate, tableId){
 
-        this.formEl = document.getElementById(formId);
+        this.formEl = document.getElementById(formIdCreate);
+        this.formUpdateEl = document.getElementById(formIdUpdate);
         this.tableEl = document.getElementById(tableId);
 
         this.onSubmit();
         this.onEdit();
-
+        this.selectAll();
     }
 
     onEdit(){
@@ -17,7 +18,103 @@ class UserController{
             this.showPanelCreate();
         
         });
+
+        this.formUpdateEl.addEventListener("submit", event=>{
+
+            event.preventDefault();
+
+            let btn = this.formUpdateEl.querySelector("[type=submit]");
+
+            btn.disabled = true;
+
+            let values = this.getValues(this.formUpdateEl);
+
+            let index = this.formUpdateEl.dataset.trIndex;
+
+            let tr = this.tableEl.rows[index];
+
+            let userOld = JSON.parse(tr.dataset.user);
+
+            let result = Object.assign({}, userOld, values);
+
+            this.getPhoto(this.formUpdateEl).then(
+                (content)=>{
+
+                    if(!values.photo){
+                        result._photo = userOld._photo;
+                    } else {
+                        result._photo = content;
+                    }
+
+                    tr.dataset.user = JSON.stringify(result);
+
+                    tr.innerHTML = `
+                        <td><img src="${result._photo}" alt="User Image" class="img-circle img-sm"></td>
+                        <td>${result._name}</td>
+                        <td>${result._email}</td>
+                        <td>${(result._admin) ? "Sim" : "Não"}</td>
+                        <td>${Utils.dateFormat(result._register)}</td>
+                        <td>
+                          <button type="button" class="btn btn-edit btn-primary btn-xs btn-flat">Editar</button>
+                          <button type="button" class="btn btn-danger btn-xs btn-flat">Excluir</button>
+                        </td>
+        `;
+                
+                    this.addEventsTr(tr);
+
+                    this.updateCount();
+
+                    this.formUpdateEl.reset();
+
+                    btn.disabled = false;
+
+                    this.showPanelCreate();
+                
+                },
+                (e)=>{
+
+                    console.error(e);
+                });
+
+        });
+
     }
+
+    getUsersStorage(){
+        let users = [];
+        
+        if(localStorage.getItem("users")){
+
+            users = JSON.parse(localStorage.getItem("users"));
+        }
+        return users;
+        
+    }
+
+    selectAll(){
+
+        let users = this.getUsersStorage();
+
+        users.forEach(dataUser=>{
+
+            let user = new User();
+
+            user.loadFromJSON(dataUser);
+
+            this.addLine(user);
+        });
+    }
+
+    insert(data){
+
+        let users = this.getUsersStorage();
+
+        users.push(data);
+
+        //sessionStorage.setItem("users", JSON.stringify(users));
+        localStorage.setItem("users", JSON.stringify(users));
+    }
+    
 
     addLine(dataUser){
         
@@ -33,18 +130,42 @@ class UserController{
                         <td>${Utils.dateFormat(dataUser.register)}</td>
                         <td>
                           <button type="button" class="btn btn-edit btn-primary btn-xs btn-flat">Editar</button>
-                          <button type="button" class="btn btn-danger btn-xs btn-flat">Excluir</button>
+                          <button type="button" class="btn btn-delete btn-danger btn-xs btn-flat">Excluir</button>
                         </td>
         `;
+
+        this.addEventsTr(tr);
+
+        this.tableEl.appendChild(tr);
+
+        this.updateCount();
+    
+    }
+
+    addEventsTr(tr){
+
+        tr.querySelector(".btn-delete").addEventListener("click", (e)=>{
+
+            if(confirm("Certeza que quer excluir?")){
+
+               tr.remove(); 
+
+               this.updateCount();
+            } 
+
+        });
+
 
         tr.querySelector(".btn-edit").addEventListener("click", (e)=>{
 
             let json = JSON.parse(tr.dataset.user);
             let form = document.querySelector("#form-user-update");
 
+            this.formUpdateEl.dataset.trIndex = tr.sectionRowIndex;
+
             for (let name in json){
 
-                let field = form.querySelector("[name=" + name.replace("_", "") + "]");
+                let field = this.formUpdateEl.querySelector("[name=" + name.replace("_", "") + "]");
 
                 if(field){
 
@@ -76,15 +197,13 @@ class UserController{
 
             }
 
+            this.formUpdateEl.querySelector(".photo").src = json._photo;
+
             this.showPanelUpdate();
 
 
         });
 
-        this.tableEl.appendChild(tr);
-
-        this.updateCount();
-    
     }
 
     showPanelCreate(){
@@ -129,14 +248,16 @@ class UserController{
 
             btn.disabled = true;
 
-            let values = this.getValues();
+            let values = this.getValues(this.formEl);
 
             if(!values) return false;
 
-            this.getPhoto().then(
+            this.getPhoto(this.formEl).then(
                 (content)=>{
 
                     values.photo = content;
+                    
+                    this.insert(values);
 
                     this.addLine(values);
 
@@ -153,13 +274,13 @@ class UserController{
         });
     }
 
-    getPhoto(){
+    getPhoto(formEl){
 
         return new Promise((resolve, reject)=>{
 
             let fileReader = new FileReader();
 
-                let elements = [...this.formEl.elements].filter(item=>{
+                let elements = [...formEl.elements].filter(item=>{
 
                     if (item.name === 'photo'){
                         return item;
@@ -190,13 +311,13 @@ class UserController{
         
     }
 
-    getValues(){
+    getValues(formEl){
 
         let user = {};
         let isValid = true;
         //let spread =  [...this.formEl.elements];
 
-        [...this.formEl.elements].forEach((field, index) =>{
+        [...formEl.elements].forEach((field, index) =>{
 
             if(["name", "email", "password"].indexOf(field.name) > -1 && !field.value){
 
